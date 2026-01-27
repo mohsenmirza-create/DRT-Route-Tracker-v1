@@ -19,7 +19,7 @@ def open_map_in_browser():
 
 root = tk.Tk()
 root.title("DRT Route Tracker")
-root.geometry("480x320")
+root.geometry("100x50")
 
 # Placeholder menu
 blank_frame = tk.Frame(root, bg="white")
