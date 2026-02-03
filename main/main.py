@@ -2,30 +2,42 @@ import tkinter as tk
 import folium
 import tempfile
 import webbrowser
+from bus_logic import Bus
 
-#Start Coordinates (Ontario Tech)
-Lat = 43.94571375306523
-Lon = -78.89763878336528
+bus = Bus()
 
 def open_map_in_browser():
-    # Create a folium map
-    map = folium.Map(location=[Lat, Lon], zoom_start=18)
-    
+    # Move bus before generating map
+    bus.move()
+    lat, lon = bus.get_position()
 
+    #bus position
+    m = folium.Map(location=[lat, lon], zoom_start=15)
+
+    #set marker for bus
+    folium.Marker(
+        [lat, lon],
+        popup="Bus 401",
+        icon=folium.Icon(color="red", icon="bus", prefix="fa")
+    ).add_to(m) 
+    
     # Save to a temporary HTML file and open it in the default browser
     tmp = tempfile.NamedTemporaryFile(prefix="drt_map_", suffix=".html", delete=False)
-    map.save(tmp.name)
+    m.save(tmp.name)
     webbrowser.open("file://" + tmp.name)
 
 root = tk.Tk()
 root.title("DRT Route Tracker")
-root.geometry("100x50")
+root.geometry("480x320")
 
 # Placeholder menu
 blank_frame = tk.Frame(root, bg="white")
+blank_frame.pack(fill=tk.BOTH, expand=True)
 
 # Button to open the map
 open_map_btn = tk.Button(root, text="Open Map", command=open_map_in_browser, width=16)
-open_map_btn.pack(pady=10)
+open_map_btn.pack(pady=12)
 
 root.mainloop()
+
+
