@@ -9,9 +9,9 @@ Any busses that leave the area will no longer be shown but still tracked in the 
 
 
 INSTRUCTIONS:
-Functioning Tkinter window requierd.
-Run program 
-Click Open Map
+To clone the repo create a desktop folder, open terminal, then input "git clone-https://github.com/mohsenmirza-create/DRT-Route-Tracker-v1.git".
+Navigate to the main folder then run main.py (bus_logic is imported into main).
+Click Open Map.
 Bus route updates each time map is opened. (Bus will not update unless page is closed and reopened, reloads do not work.)
 Bus will travel to set coordinates and loop when route is complete.
 
