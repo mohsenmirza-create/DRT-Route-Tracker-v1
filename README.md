@@ -7,3 +7,12 @@ Our goals include having a map fuction to calculate the most efficient route to 
 This will be a framework tracking busses hypothetically in a limited area. 
 Any busses that leave the area will no longer be shown but still tracked in the background.
 
+INSTRUCTIONS:
+Functioning Tkinter window requierd.
+Run program 
+Click Open Map
+Bus route updates each time map is opened. (Bus will not update unless page is closed and reopend, relodes do not work.)
+BUs will travel to set coordinates and loop when route is complete.
+
+
+
