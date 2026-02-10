@@ -1,43 +1,41 @@
-import tkinter as tk
-import folium
-import tempfile
+import json
 import webbrowser
+import os
+import subprocess
+import time
 from bus_logic import Bus
 
 bus = Bus()
 
-def open_map_in_browser():
-    # Move bus before generating map
-    bus.move()
-    lat, lon = bus.get_position()
+def write_position(lat, lon):
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    json_path = os.path.join(script_dir, "bus_position.json")
 
-    #bus position
-    m = folium.Map(location=[lat, lon], zoom_start=15)
+    with open(json_path, "w") as f:
+        json.dump({"lat": lat, "lon": lon}, f)
 
-    #set marker for bus
-    folium.Marker(
-        [lat, lon],
-        popup="Bus 401",
-        icon=folium.Icon(color="red", icon="bus", prefix="fa")
-    ).add_to(m) 
-    
-    # Save to a temporary HTML file and open it in the default browser
-    tmp = tempfile.NamedTemporaryFile(prefix="drt_map_", suffix=".html", delete=False)
-    m.save(tmp.name)
-    webbrowser.open("file://" + tmp.name)
+def update_bus():
+    while True:
+        bus.move(step=0.02)
+        lat, lon = bus.get_position()
+        write_position(lat, lon)
+        time.sleep(0.1)  # 10 updates per second
 
-root = tk.Tk()
-root.title("DRT Route Tracker")
-root.geometry("480x320")
+def start_server():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    subprocess.Popen(
+        ["python", "-m", "http.server", "8000"],
+        cwd=script_dir,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL
+    )
+    time.sleep(1)  # give server time to start
 
-# Placeholder menu
-blank_frame = tk.Frame(root, bg="white")
-blank_frame.pack(fill=tk.BOTH, expand=True)
+def open_map():
+    webbrowser.open("http://localhost:8000/map.html")
 
-# Button to open the map
-open_map_btn = tk.Button(root, text="Open Map", command=open_map_in_browser, width=16)
-open_map_btn.pack(pady=12)
-
-root.mainloop()
-
+if __name__ == "__main__":
+    start_server()
+    open_map()
+    update_bus()
 
