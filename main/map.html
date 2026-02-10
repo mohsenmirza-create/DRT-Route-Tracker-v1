@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>DRT Live Bus</title>
+    <style>
+        html, body, #map {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+
+<body>
+    <div id="map"></div>
+
+    <script>
+        // Initial map
+        var map = L.map('map').setView([43.9448472, -78.8917028], 15);
+
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+        }).addTo(map);
+
+        // Bus marker
+        var marker = L.marker([43.9448472, -78.8917028]).addTo(map);
+
+        // Update marker every 100ms
+        async function updateBus() {
+            try {
+                const response = await fetch("bus_position.json?cache=" + Math.random());
+                const data = await response.json();
+                marker.setLatLng([data.lat, data.lon]);
+            } catch (e) {
+                console.log("Waiting for data...");
+            }
+        }
+
+        setInterval(updateBus, 100);
+    </script>
+</body>
+</html>
