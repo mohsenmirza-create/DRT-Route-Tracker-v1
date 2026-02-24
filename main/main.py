@@ -16,7 +16,7 @@ def write_position(lat, lon):
 
 def update_bus():
     while True:
-        bus.move(step=0.02)
+        bus.move(dt=0.1)
         lat, lon = bus.get_position()
         write_position(lat, lon)
         time.sleep(0.1)  # 10 updates per second

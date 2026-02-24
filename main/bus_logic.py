@@ -1,3 +1,5 @@
+import math
+
 ROUTE = [
     (43.94468500, -78.85081900),
     (43.94455100, -78.85138900),
@@ -173,22 +175,62 @@ ROUTE = [
 ]
 
 class Bus:
-    def __init__(self):
+    def __init__(self, speed_mps=8):
+        """
+        speed_mps = meters per second (8 m/s ≈ 28 km/h, realistic for city bus)
+        """
         self.route = ROUTE
         self.index = 0
-        self.progress = 0.0  # 0 → 1 between points
+        self.progress = 0.0
+        self.speed_mps = speed_mps  # constant real-world speed
+
+    def haversine(self, lat1, lon1, lat2, lon2):
+        """
+        Returns distance between two lat/lon points in meters.
+        """
+        R = 6371000  # Earth radius in meters
+        phi1 = math.radians(lat1)
+        phi2 = math.radians(lat2)
+        dphi = math.radians(lat2 - lat1)
+        dlambda = math.radians(lon2 - lon1)
+
+        a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2)**2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+        return R * c
 
     def get_position(self):
+        """
+        Returns the interpolated position between route[index] and route[index+1].
+        """
         lat1, lon1 = self.route[self.index]
         lat2, lon2 = self.route[(self.index + 1) % len(self.route)]
 
-        # linear interpolation
         lat = lat1 + (lat2 - lat1) * self.progress
         lon = lon1 + (lon2 - lon1) * self.progress
         return lat, lon
 
-    def move(self, step=0.20):
-        self.progress += step
+    def move(self, dt=0.1):
+        """
+        dt = time step in seconds (matches your time.sleep in main.py)
+        Moves the bus based on real distance and constant speed.
+        """
+        # Current segment endpoints
+        lat1, lon1 = self.route[self.index]
+        lat2, lon2 = self.route[(self.index + 1) % len(self.route)]
+
+        # Distance of this segment in meters
+        segment_length = self.haversine(lat1, lon1, lat2, lon2)
+
+        # How far the bus should move this frame
+        distance_to_move = self.speed_mps * dt
+
+        # Convert meters → progress (0 to 1)
+        progress_step = distance_to_move / segment_length
+
+        # Advance progress
+        self.progress += progress_step
+
+        # If we reached the next point, move to next segment
         if self.progress >= 1.0:
-            self.progress = 0.0
+            self.progress -= 1.0
             self.index = (self.index + 1) % len(self.route)
