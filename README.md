@@ -15,6 +15,8 @@ Click Open Map.
 Bus route updates each time map is opened. (Bus will not update unless page is closed and reopened, reloads do not work.)
 Bus will travel to set coordinates and loop when route is complete.
 
+INSTRUCTIONS FOR TESTING:
+To test the project go into your root folder (DRT-Route-Tracker-v1), open a terminal and type "pytest -v". The test cases will appear and be verified.
 
 PROJECT Structure: 
 3 main python folders MAIN, DRT-UI, DRT-Data
