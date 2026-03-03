@@ -5,6 +5,10 @@ import subprocess
 import time
 from bus_logic import Bus
 
+def ci_message():
+    return "main.py ran successfully"
+
+
 bus = Bus()
 
 def write_position(lat, lon):
@@ -35,7 +39,7 @@ def open_map():
     webbrowser.open("http://localhost:8000/map.html")
 
 if __name__ == "__main__":
+    print(ci_message()) 
     start_server()
     open_map()
     update_bus()
-
