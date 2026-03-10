@@ -17,7 +17,7 @@ Click Open Map.
 Bus route updates each time map is opened. (Bus will not update unless page is closed and reopened, reloads do not work.)
 Bus will travel to set coordinates and loop when route is complete.
 *ANOTHER OPTION
-Download the zip file titled "DRT-Route-Tracker-v1.1.0".
+Download the zip file under releases titled "DRT-Route-Tracker-v1.1.0".
 Unzip and run "main.py" within the "main" folder
 
 
