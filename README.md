@@ -16,6 +16,10 @@ Navigate to the main folder then run main.py (bus_logic is imported into main).
 Click Open Map.
 Bus route updates each time map is opened. (Bus will not update unless page is closed and reopened, reloads do not work.)
 Bus will travel to set coordinates and loop when route is complete.
+*ANOTHER OPTION
+Download the zip file titled "DRT-Route-Tracker-v1.1.0".
+Unzip and run "main.py" within the "main" folder
+
 
 INSTRUCTIONS FOR TESTING:
 To test the project go into your root folder (DRT-Route-Tracker-v1), open a terminal and type "pytest -v". The test cases will appear and be verified.
