@@ -6,7 +6,7 @@ import time
 from bus_logic import Bus
 
 def ci_message():
-    return "main.py ran successfully"
+    return "main.py did run successfully"
 
 
 bus = Bus()
