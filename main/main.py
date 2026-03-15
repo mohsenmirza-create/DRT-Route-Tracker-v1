@@ -1,45 +1,36 @@
 import json
+import time
 import webbrowser
 import os
-import subprocess
-import time
+
+from http.server import SimpleHTTPRequestHandler, HTTPServer
+
+from gtfs_loader import load_shape_coordinates
 from bus_logic import Bus
 
-def ci_message():
-    return "main.py did run successfully"
-
-
-bus = Bus()
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+GTFS_DIR = os.path.join(BASE_DIR, "gtfs")
 
 def write_position(lat, lon):
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    json_path = os.path.join(script_dir, "bus_position.json")
-
-    with open(json_path, "w") as f:
+    with open("bus_position.json", "w") as f:
         json.dump({"lat": lat, "lon": lon}, f)
 
-def update_bus():
+def start_server():
+    server = HTTPServer(("localhost", 8000), SimpleHTTPRequestHandler)
+    print("Server running at http://localhost:8000/map.html")
+    server.serve_forever()
+
+if __name__ == "__main__":
+    coords = load_shape_coordinates(GTFS_DIR, route_id="900")
+    bus = Bus(route_id="900", coordinates=coords)
+
+    webbrowser.open("http://localhost:8000/map.html")
+
+    import threading
+    threading.Thread(target=start_server, daemon=True).start()
+
     while True:
         bus.move(dt=0.1)
         lat, lon = bus.get_position()
         write_position(lat, lon)
-        time.sleep(0.1)  # 10 updates per second
-
-def start_server():
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    subprocess.Popen(
-        ["python", "-m", "http.server", "8000"],
-        cwd=script_dir,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL
-    )
-    time.sleep(1)  # give server time to start
-
-def open_map():
-    webbrowser.open("http://localhost:8000/map.html")
-
-if __name__ == "__main__":
-    print(ci_message()) 
-    start_server()
-    open_map()
-    update_bus()
+        time.sleep(0.1)
