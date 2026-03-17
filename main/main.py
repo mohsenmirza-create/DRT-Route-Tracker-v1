@@ -16,7 +16,7 @@ def write_position(lat, lon):
         json.dump({"lat": lat, "lon": lon}, f)
 
 def start_server():
-    server = HTTPServer(("localhost", 8000), SimpleHTTPRequestHandler)
+    server = HTTPServer(("0.0.0.0", 8000), SimpleHTTPRequestHandler)
     print("Server running at http://localhost:8000/map.html")
     server.serve_forever()
 
