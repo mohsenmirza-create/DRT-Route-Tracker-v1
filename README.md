@@ -24,6 +24,12 @@ Unzip and run "main.py" within the "main" folder
 INSTRUCTIONS FOR TESTING:
 To test the project go into your root folder (DRT-Route-Tracker-v1), open a terminal and type "pytest -v". The test cases will appear and be verified.
 
+INSTRUCTIONS FOR DOCKER:
+-To run the project in Docker (you must first have Docker installed and running) input "docker build -t drt-route-tracker ." in a terminal within the project root.
+-Run the container by inputting "docker run -p 8080:8000 drt-route-tracker" within the same terminal.
+-Open the application by inputting "http://localhost:8080/map.html" in a web browser.
+
+
 PROJECT Structure: 
 3 main python folders MAIN, DRT-UI, DRT-Data
 Main is the actual function of the code. 
