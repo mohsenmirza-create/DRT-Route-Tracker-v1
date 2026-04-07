@@ -1,13 +1,17 @@
 # DRT-Route-Tracker-v1
 ![CI](https://github.com/mohsenmirza-create/DRT-Route-Tracker-v1/actions/workflows/ci.yml/badge.svg)
 
+
 Simulated Durham transit tracker using public data, covers all of Durham.
 Our goal is to make a framework for being able to track any given drt bus on its route live.
 We want to make this because all the other apps just show the route and there's not any way to see where any given bus is located.
 We will be coding this in python.
-Our goals include having a map fuction to calculate the most efficient route to a destination.
-This will be a framework tracking busses hypothetically in a limited area. 
-Any busses that leave the area will no longer be shown but still tracked in the background.
+
+HOW IT WORKS:
+project is made up in 3 layers, 
+-the DATA LAYER, where raw GTFS data is collected, and scripts are created that convert this into JSON lookups.
+-The BACKEND, where GTFS is fetched in real time, it maps the vehicles to routes/branches, and it serves JSON APIs to the frontend
+-The FRONTEND, where it displays routes, shows live bus positions, lets the user search for routes.
 
 
 INSTRUCTIONS:
