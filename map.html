@@ -2,12 +2,107 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>DRT Live Bus</title>
+    <title>DRT Live Bus Tracker</title>
+
     <style>
         html, body, #map {
             height: 100%;
             margin: 0;
             padding: 0;
+        }
+
+        .bus-label {
+            background: #0078ff;
+            color: white;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            border: 1px solid white;
+            transition: opacity 0.2s ease;
+        }
+
+        #sidebar-button {
+            position: absolute;
+            top: 0px;
+            left: 0;
+            z-index: 1500;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            cursor: pointer;
+            font-family: sans-serif;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        #sidebar {
+            position: absolute;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100%;
+            background: #f8f8f8;
+            box-shadow: 2px 0 6px rgba(0,0,0,0.3);
+            z-index: 1400;
+            padding: 15px;
+            font-family: sans-serif;
+            overflow-y: auto;
+            transition: left 0.3s ease;
+        }
+
+        #sidebar.open {
+            left: 0;
+        }
+
+        .route-header {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        #sidebar-search-input {
+            width: 100%;
+            padding: 5px;
+            font-size: 14px;
+            margin-top: 6px;
+            box-sizing: border-box;
+        }
+
+        #clear-button {
+            margin-top: 10px;
+            margin-bottom: 15px;
+            padding: 8px 12px;
+            background: #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            text-align: center;
+            user-select: none;
+        }
+
+        .route-item {
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .branch-list {
+            margin-left: 15px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .branch-item {
+            cursor: pointer;
+            padding: 3px 0;
+        }
+
+        .branch-item:hover {
+            text-decoration: underline;
         }
     </style>
 
@@ -16,31 +111,298 @@
 </head>
 
 <body>
+
+    <div id="sidebar-button">☰ Routes</div>
+
+    <div id="sidebar">
+        <div class="route-header">
+            Routes
+            <input id="sidebar-search-input" type="text" placeholder="Search route or branch..." />
+        </div>
+
+        <!-- CLEAR BUTTON -->
+        <div id="clear-button">Clear</div>
+
+        <div id="route-list"></div>
+    </div>
+
     <div id="map"></div>
 
     <script>
-        // Initial map
-        var map = L.map('map').setView([43.9448472, -78.8917028], 15);
+        var map = L.map('map').setView([43.9448472, -78.8917028], 12);
 
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19
         }).addTo(map);
 
-        // Bus marker
-        var marker = L.marker([43.9448472, -78.8917028]).addTo(map);
+        let vehicleMarkers = {};
+        let routeShapes = {};
+        let activeRouteLayer = null;
+        let activeBranch = null;
 
-        // Update marker every 100ms
-        async function updateBus() {
+        let branchDescriptions = {};
+        let groupedRoutes = {};
+
+        fetch("route_shapes.json")
+            .then(res => res.json())
+            .then(data => {
+                routeShapes = data;
+                loadBranches();
+            });
+
+        function loadBranches() {
+            fetch("/branches")
+                .then(res => res.json())
+                .then(branches => {
+                    branchDescriptions = {};
+                    groupedRoutes = {};
+
+                    branches.forEach(b => {
+                        const route = b.route_id;
+                        const branch = b.branch_id;
+                        const desc = b.description || "";
+
+                        branchDescriptions[branch] = desc;
+
+                        if (!groupedRoutes[route]) groupedRoutes[route] = [];
+                        if (!groupedRoutes[route].includes(branch)) {
+                            groupedRoutes[route].push(branch);
+                        }
+                    });
+
+                    Object.keys(groupedRoutes).forEach(r => groupedRoutes[r].sort());
+                    renderSidebar("");
+                });
+        }
+
+        function renderSidebar(filterText) {
+            const routeList = document.getElementById("route-list");
+            routeList.innerHTML = "";
+
+            const filter = (filterText || "").toUpperCase().trim();
+
+            Object.keys(groupedRoutes).sort().forEach(routeNum => {
+                const branches = groupedRoutes[routeNum];
+
+                const visibleBranches = branches.filter(branch => {
+                    if (!filter) return true;
+                    const desc = branchDescriptions[branch] || "";
+                    const haystack = (routeNum + " " + branch + " " + desc).toUpperCase();
+                    return haystack.includes(filter);
+                });
+
+                if (visibleBranches.length === 0) return;
+
+                const routeItem = document.createElement("div");
+                routeItem.className = "route-item";
+                routeItem.innerText = routeNum;
+
+                const branchList = document.createElement("div");
+                branchList.className = "branch-list";
+
+                visibleBranches.forEach(branch => {
+                    const b = document.createElement("div");
+                    b.className = "branch-item";
+
+                    const desc = branchDescriptions[branch] ? ` – ${branchDescriptions[branch]}` : "";
+                    b.innerText = branch + desc;
+
+                    b.onclick = () => highlightRoute(branch);
+
+                    branchList.appendChild(b);
+                });
+
+                if (filter) branchList.style.display = "block";
+
+                routeItem.onclick = () => {
+                    branchList.style.display =
+                        branchList.style.display === "block" ? "none" : "block";
+                };
+
+                routeList.appendChild(routeItem);
+                routeList.appendChild(branchList);
+            });
+        }
+
+        const sidebarSearchInput = document.getElementById("sidebar-search-input");
+
+        sidebarSearchInput.addEventListener("input", function () {
+            renderSidebar(this.value);
+        });
+
+        sidebarSearchInput.addEventListener("keypress", function (e) {
+            if (e.key === "Enter") {
+                const value = this.value.trim().toUpperCase();
+                if (!value) return;
+
+                const allBranches = Object.values(groupedRoutes).flat();
+
+                const exactBranch = allBranches.find(b => b.toUpperCase() === value);
+                if (exactBranch) return highlightRoute(exactBranch);
+
+                if (/^[0-9]+$/.test(value)) return highlightRoute(value);
+
+                const candidate = allBranches.find(branch => {
+                    const desc = branchDescriptions[branch] || "";
+                    const haystack = (branch + " " + desc).toUpperCase();
+                    return haystack.includes(value);
+                });
+
+                if (candidate) highlightRoute(candidate);
+            }
+        });
+
+        document.getElementById("sidebar-button").onclick = () => {
+            document.getElementById("sidebar").classList.toggle("open");
+        };
+
+        // CLEAR BUTTON LOGIC
+        document.getElementById("clear-button").onclick = () => {
+            activeBranch = null;
+
+            if (activeRouteLayer) {
+                map.removeLayer(activeRouteLayer);
+                activeRouteLayer = null;
+            }
+
+            sidebarSearchInput.value = "";
+            renderSidebar("");
+
+            fetchVehicles();
+        };
+
+        function highlightRoute(branchId) {
+            activeBranch = branchId;
+
+            if (activeRouteLayer) {
+                map.removeLayer(activeRouteLayer);
+                activeRouteLayer = null;
+            }
+
+            const isBareRoute = /^[0-9]+$/.test(branchId);
+
+            if (isBareRoute) {
+                const matches = Object.keys(routeShapes).filter(k => k.startsWith(branchId));
+
+                if (matches.length > 0) {
+                    const layers = [];
+
+                    matches.forEach(b => {
+                        const coords = routeShapes[b];
+                        if (coords) {
+                            const layer = L.polyline(coords, {
+                                color: "yellow",
+                                weight: 5,
+                                opacity: 0.8
+                            });
+                            layers.push(layer);
+                        }
+                    });
+
+                    if (layers.length > 0) {
+                        const group = L.featureGroup(layers).addTo(map);
+                        map.fitBounds(group.getBounds());
+                        activeRouteLayer = group;
+                    }
+                }
+
+                fetchVehicles();
+                return;
+            }
+
+            const coords = routeShapes[branchId];
+            if (!coords) {
+                console.warn("No shape found for:", branchId);
+                fetchVehicles();
+                return;
+            }
+
+            activeRouteLayer = L.polyline(coords, {
+                color: "yellow",
+                weight: 5,
+                opacity: 0.8
+            }).addTo(map);
+
+            map.fitBounds(activeRouteLayer.getBounds());
+            fetchVehicles();
+        }
+
+        async function fetchVehicles() {
             try {
-                const response = await fetch("bus_position.json?cache=" + Math.random());
-                const data = await response.json();
-                marker.setLatLng([data.lat, data.lon]);
-            } catch (e) {
-                console.log("Waiting for data...");
+                const res = await fetch("/vehicles");
+                const data = await res.json();
+                updateVehicleMarkers(data.vehicles);
+            } catch (err) {
+                console.error("Failed to fetch vehicles:", err);
             }
         }
 
-        setInterval(updateBus, 100);
+        function updateVehicleMarkers(vehicles) {
+            const seen = new Set();
+
+            vehicles.forEach(v => {
+                const id = v.id;
+                seen.add(id);
+
+                const latlng = [v.lat, v.lon];
+                const branch = v.branch ?? v.route_id;
+
+                let isDimmed = false;
+                if (activeBranch !== null) {
+                    const isBareRoute = /^[0-9]+$/.test(activeBranch);
+                    if (isBareRoute) {
+                        isDimmed = !branch.startsWith(activeBranch);
+                    } else {
+                        isDimmed = branch !== activeBranch;
+                    }
+                }
+
+                const label = `
+                    <b>Bus ID:</b> ${v.id}<br>
+                    <b>Route:</b> ${branch}<br>
+                `;
+
+                const icon = L.divIcon({
+                    className: "bus-label",
+                    html: `${branch}`,
+                    iconSize: [30, 20],
+                    iconAnchor: [15, 10]
+                });
+
+                if (vehicleMarkers[id]) {
+                    vehicleMarkers[id].setLatLng(latlng);
+                    vehicleMarkers[id].setIcon(icon);
+                    vehicleMarkers[id].bindTooltip(label);
+
+                    const el = vehicleMarkers[id].getElement();
+                    if (el) el.style.opacity = isDimmed ? "0.25" : "1";
+
+                } else {
+                    const marker = L.marker(latlng, { icon: icon });
+                    marker.bindTooltip(label);
+
+                    marker.on("click", () => highlightRoute(branch));
+
+                    marker.addTo(map);
+                    vehicleMarkers[id] = marker;
+
+                    marker.on("add", () => {
+                        const el = marker.getElement();
+                        if (el) el.style.opacity = isDimmed ? "0.25" : "1";
+                    });
+                }
+            });
+
+            Object.keys(vehicleMarkers).forEach(id => {
+                if (!seen.has(id)) {
+                    map.removeLayer(vehicleMarkers[id]);
+                    delete vehicleMarkers[id];
+                }
+            });
+        }
+
+        setInterval(fetchVehicles, 5000);
+        fetchVehicles();
     </script>
 </body>
 </html>
