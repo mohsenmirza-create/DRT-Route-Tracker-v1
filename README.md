@@ -12,13 +12,12 @@ Any busses that leave the area will no longer be shown but still tracked in the 
 
 INSTRUCTIONS:
 To clone the repo create a desktop folder, open terminal, then input "git clone-https://github.com/mohsenmirza-create/DRT-Route-Tracker-v1.git".
-Navigate to the main folder then run main.py (bus_logic is imported into main).
-Click Open Map.
-Bus route updates each time map is opened. (Bus will not update unless page is closed and reopened, reloads do not work.)
-Bus will travel to set coordinates and loop when route is complete.
+Navigate to the root folder, then click on run_server.bat.
+That will open a terminal and your default web browser will open with the map now running.
+To close the program, exit the web browser and close the opened terminal.
 *ANOTHER OPTION
-Download the zip file under releases titled "DRT-Route-Tracker-v1.1.0".
-Unzip and run "main.py" within the "main" folder
+Download the zip file under releases titled "DRT v2.0.0".
+Unzip and do the same as you would the cloned project.
 
 
 INSTRUCTIONS FOR TESTING:
@@ -29,23 +28,31 @@ INSTRUCTIONS FOR DOCKER:
 -Run the container by inputting "docker run -p 8080:8000 drt-route-tracker" within the same terminal.
 -Open the application by inputting "http://localhost:8080/map.html" in a web browser.
 
-
 PROJECT Structure: 
-3 main python folders MAIN, DRT-UI, DRT-Data
-Main is the actual function of the code. 
-DRT-UI contaions the frontend that the user will see including the map and the the busses. 
-DRT-Data will contain the Bus and route data becuase this is a simulated map none of the bus data is real so we have to simulate it.
-
+3 main python folders: main, gtfs, and tests.
 
 PROJECT Limtations:
-Only one Bus.
-Map does not auto update.
-No animations 
-Bus markers need updates.
+Bus updates are slow (roughly every 40 seconds).
+Limited sidebar (needs improvement on features).
+
 
 Project Performance Improvements:
 -Removed Route ID, Bearing, and Speed. (Currently unused)
 -Dramatically increased performance (JSON file size down to roughly 7k bytes, formerly 25k bytes, download time reduced from 2 - 3 ms, to 0.8 ms).
+
+What I've Learned:
+-I had to learn what GTFS data is (how transit agencies structure their data, How to map trips, and how to preprocess GTFS into a usable JSON).
+-I had to learn how to create a backend that ouotputs real-time data (how to fetch the GTFS feed that DRT provides, turn them into python objects, and assign them vehicle ID's).
+-Creating a UI (getting familiar with HTML, making a sidebar with routes and branches, search filtering and auto complete, highlighting routes on the map, and making it readable by dimming non selected buses).
+-Working with mapping libraries, specifically leaflet (How to draw polylines for routes, how to place markers for buses, and how to update markers).
+-Major issues I had was personal management, I'd accidently delete git clones that I hadn't properly saved and had to back track a lot, my project folders on my laptop were disorganized. Learning how to use HTML was it's own process. I wasted a lot of time starting from using simulated data instead of jumping straight to real data since I created a whole system where the bus project would create intricate coordinates points based off of the static data given in the gtfs folder.
+
+FUTURE PLANS:
+-Update the UI (improve readability, add borders between bus options, create a proper drop down menu with arrows, change font, make it look nicer in general).
+-Include extra information (highlight bus stops, show ETA's, display the bus's current speed, show arrows on the highlighted route to show which direction the selected bus is going in.).
+
+
+
 
 
 
