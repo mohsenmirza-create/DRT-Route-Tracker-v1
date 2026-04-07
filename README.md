@@ -43,6 +43,10 @@ Map does not auto update.
 No animations 
 Bus markers need updates.
 
+Project Performance Improvements:
+-Removed Route ID, Bearing, and Speed. (Currently unused)
+-Dramatically increased performance (JSON file size down to roughly 7k bytes, formerly 25k bytes, download time reduced from 2 - 3 ms, to 0.8 ms).
+
 
 
 
